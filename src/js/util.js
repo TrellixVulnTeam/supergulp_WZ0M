@@ -1,0 +1,1 @@
+export const readom = () => Math.floor(Math.random() *max)
