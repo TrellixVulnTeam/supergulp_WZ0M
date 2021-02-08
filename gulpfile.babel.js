@@ -3,7 +3,7 @@ import gpug from "gulp-pug"
 
 const routes = {
     pug: {
-        src: "src/*.pug",
+        src: "src/**/*.pug",
         dest: "build"
         //
         //폴더 안쪽 파일까지 건드리고 싶다면 src/**/*.pug를 입력할것! //
