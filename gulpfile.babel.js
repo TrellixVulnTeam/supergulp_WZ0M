@@ -3,6 +3,9 @@ import gpug from "gulp-pug"
 import del from "del";
 import ws from "gulp-webserver";
 import image from "gulp-image";
+import sass from "gulp-sass";
+
+sass.compiler = require("node-sass");
 
 //만약 src를 변경했다고 해보자! 
 //콘솔창에 yarn add del 을 사용하여 삭제! 
@@ -23,6 +26,11 @@ const routes = {
         //img 파일에 있는 모든 파일들!
         dest: "build/img"
 
+    },
+    scss: {
+        watch: "src/scss/**/*.scss",
+        src: "src/scss/style.scss",
+        dest: "build/css"
     }
 };
 //pug는 src에 있고, 이 안의 .pug로 끝나는 모든 파일들을 컴파일하자! 
@@ -40,17 +48,16 @@ const clean = () => del(["build/"]);
 //export const clean = () => del("build")
 //clean이라는 변수는 del"build"라는 것을 지운다.
 
-const webserver = () =>
-    gulp.src("build").pipe(ws({
-        livereload: true,
-        open: true
-    }));
+const webserver = () => gulp.src("build").pipe(ws({
+    livereload: true
+}));
 //livereload는 파일을 저장하면 자동으로 새로고침해준다.
 
 const watch = () => {
     gulp.watch(routes.pug.watch, pug);
     //변수routes안에 pug의 watch가 변수pug를 지켜본다.
     gulp.watch(routes.img.src, img);
+    gulp.watch(routes.scss.watch, styles);
 }
 
 const img = () =>
@@ -59,14 +66,21 @@ const img = () =>
     .pipe(image())
     .pipe(gulp.dest(routes.img.dest));
 
+const styles = () =>
+    gulp
+    .src(routes.scss.src)
+    .pipe(sass().on("error", sass.logError))
+    .pipe(gulp.dest(routes.scss.dest));
+
 const prepare = gulp.series([clean, img]);
 
-const assets = gulp.series([pug]);
+const assets = gulp.series([pug, styles]);
 
-const postDev = gulp.parallel([webserver, watch]);
+const live = gulp.parallel([webserver, watch]);
 //postDev는 웹서버를 실행하고, 파일의 변동사항을 지켜보는 역할을 한다.
 //parallel은 두가지를 병행하여 실행하게끔 한다.
 
-export const dev = gulp.series([prepare, assets, postDev]);
+export const dev = gulp.series([prepare, assets, live]);
+
 //먼저 clean을 통해 build 폴더를 지우고 , pug를 적용!            
 //만약 clean을 exprot 하지 않는다면, 콘솔이나 package.json에서 사용하지 못한다.
