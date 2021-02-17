@@ -53,7 +53,7 @@ const pug = () =>
     .pipe(gulp.dest(routes.pug.dest));
 //gulp의 dest(destination)! 종착점이 dest인 "build"인거야! 
 
-const clean = () => del(["build/"]);
+const clean = () => del(["build/", ".publish"]);
 //속성이 변할때를 대비해 먼저 초기화하고 build 폴더를 생성한다.
 //export const clean = () => del("build")
 //clean이라는 변수는 del"build"라는 것을 지운다.
@@ -120,7 +120,7 @@ const live = gulp.parallel([webserver, watch]);
 
 export const build = gulp.series([prepare, assets]);
 export const dev = gulp.series([build, live]);
-export const deploy = gulp.series([build, gh]);
+export const deploy = gulp.series([build, gh, clean]);
 
 //먼저 clean을 통해 build 폴더를 지우고 , pug를 적용!            
 //만약 clean을 exprot 하지 않는다면, 콘솔이나 package.json에서 사용하지 못한다.
