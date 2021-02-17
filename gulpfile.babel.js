@@ -4,6 +4,10 @@ import del from "del";
 import ws from "gulp-webserver";
 import image from "gulp-image";
 import sass from "gulp-sass";
+import autoprefixer from "gulp-autoprefixer";
+import miniCSS from "gulp-csso";
+import bro from "gulp-bro";
+import babelify from "babelify";
 
 sass.compiler = require("node-sass");
 
@@ -31,6 +35,11 @@ const routes = {
         watch: "src/scss/**/*.scss",
         src: "src/scss/style.scss",
         dest: "build/css"
+    },
+    js: {
+        watch: "src/js/**/*.js", //모든 js파일을 감시한다.
+        src: "src/js/main.js",
+        dest: "build/js"
     }
 };
 //pug는 src에 있고, 이 안의 .pug로 끝나는 모든 파일들을 컴파일하자! 
@@ -57,7 +66,8 @@ const watch = () => {
     gulp.watch(routes.pug.watch, pug);
     //변수routes안에 pug의 watch가 변수pug를 지켜본다.
     gulp.watch(routes.img.src, img);
-    gulp.watch(routes.scss.watch, styles);
+    gulp.watch(routes.scss.watch, styles, js);
+    gulp.watch(routes.js.watch, js);
 }
 
 const img = () =>
@@ -70,11 +80,35 @@ const styles = () =>
     gulp
     .src(routes.scss.src)
     .pipe(sass().on("error", sass.logError))
+    .pipe(autoprefixer())
+    //https://github.com/browserslist/browserslist#queries
+    //옵션이 먹지 않아서, package.json에 옵션 추가하였다! 
+    //last 2 versions은 auto-prefixer의 옵션이다.
+    //last 2 versions은 모든 브라우저의 두 단계 아래까지 지원하게끔 한다.
+    .pipe(miniCSS()) //여기에도 옵션을 추가할 수 있다. 
     .pipe(gulp.dest(routes.scss.dest));
+
+const js = () =>
+    gulp
+    .src(routes.js.src)
+    .pipe(
+        bro({
+            transform: [
+                babelify.configure({
+                    presets: ["@babel/preset-env"]
+                }),
+                ["uglifyify", {
+                    global: true
+                }]
+            ]
+        })
+    )
+    .pipe(gulp.dest(routes.js.dest));
+
 
 const prepare = gulp.series([clean, img]);
 
-const assets = gulp.series([pug, styles]);
+const assets = gulp.series([pug, styles, js]);
 
 const live = gulp.parallel([webserver, watch]);
 //postDev는 웹서버를 실행하고, 파일의 변동사항을 지켜보는 역할을 한다.
