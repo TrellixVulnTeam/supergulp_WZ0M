@@ -8,6 +8,7 @@ import autoprefixer from "gulp-autoprefixer";
 import miniCSS from "gulp-csso";
 import bro from "gulp-bro";
 import babelify from "babelify";
+import ghPages from "gulp-gh-pages"
 
 sass.compiler = require("node-sass");
 
@@ -104,6 +105,9 @@ const js = () =>
         })
     )
     .pipe(gulp.dest(routes.js.dest));
+    
+    const gh = () =>gulp.src("build/**/*").pipe(ghPages());
+    //모든 폴더와 모든 파일을 적용! 
 
 
 const prepare = gulp.series([clean, img]);
@@ -114,7 +118,12 @@ const live = gulp.parallel([webserver, watch]);
 //postDev는 웹서버를 실행하고, 파일의 변동사항을 지켜보는 역할을 한다.
 //parallel은 두가지를 병행하여 실행하게끔 한다.
 
-export const dev = gulp.series([prepare, assets, live]);
+export const build = gulp.series([prepare, assets]);
+export const dev = gulp.series([build, live]);
+export const deploy = gulp.series([build, gh]);
 
 //먼저 clean을 통해 build 폴더를 지우고 , pug를 적용!            
 //만약 clean을 exprot 하지 않는다면, 콘솔이나 package.json에서 사용하지 못한다.
+//buld는 prepare, assets를 불러오고, 
+//dev는 build를 하고, live로 이들을 라이브 서버에서 보여준다.
+//deploy는 assets을 build하고, 그것들을 배포한다. 
